@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<PropertyList>
+
+<!--
+
+Type:- short-range air-to-air missile 
+Place of origin:- Soviet Union 
+
+Service history
+In service:- 1982-present 
+
+Production history
+Manufacturer :- Vympel NPO (former), Tbilisi Aircraft Manufacturing (current) 
+
+Specifications
+Weight:- 105 kilograms (231 lb) 
+Length:- 2.93 metres (9 ft 7 in) 
+Diameter:- 165 millimetres (6.5 in) 
+Warhead:- 7.4 kilograms (16 lb) 
+Engine:- solid-fuel rocket engine 
+Wingspan:-510 millimetres (20 in) 
+
+Operational range
+R-73E: 20 kilometres (12 mi)
+R-73M1: 30 kilometres (19 mi) [1]
+R-73M2: 40km (24.7 miles)[2] 
+
+Speed:- Mach 2.5 
+
+Guidance  system
+All-aspect infrared homing 
+
+
+Launch  platform
+ 
+MiG-21(Upgraded), MiG-23-98, MiG-29, MiG-31, MiG-35
+Sukhoi Su-24, Su-25, Su-27, Su-30, Su-33, Su-35, Su-34, Su-47, PAK FA
+Mil Mi-24, Mil Mi-28, Kamov Ka-50, Kamov Ka-52
+Yak-141, Yak-130
+HAL Tejas (Future)
+J-10
+ 
+-->
+
+
+    <path>R-74.ac</path>
+    
+
+    <animation>
+        <type>range</type>
+        <min-m>0</min-m>
+        <max-m>100</max-m>
+    </animation>
+
+</PropertyList>

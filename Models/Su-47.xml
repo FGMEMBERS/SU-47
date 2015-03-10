@@ -1,0 +1,1472 @@
+<?xml version="1.0"?>
+	
+<PropertyList>
+
+<!-- Model -->
+	
+	<path>SU-47.ac</path>
+	
+	<offsets>
+		<x-m>0</x-m>
+		<y-m>0</y-m>
+		<z-m>-0.5</z-m>
+		<pitch-deg>-3</pitch-deg>
+	</offsets>
+	
+<!-- Panel -->
+	
+	<model>
+		<path>Aircraft/SU-47/Models/Interior/panel.xml</path>
+		<offsets>
+			<x-m>0.2</x-m>
+			<y-m>-0.01</y-m>
+			<z-m>-0.48</z-m>
+			<pitch-deg>0</pitch-deg>
+		</offsets>
+		
+	</model>
+	
+<!-- MP sound call -->
+	
+	<sound>
+		<path>Aircraft/SU-47/Sounds/mp-sound.xml</path>
+	</sound>
+	
+<!-- Liveries -->
+
+	<nasal>
+		<load>
+		var livery_update = aircraft.livery_update.new("Aircraft/SU-47/Models/Liveries", 10);
+		 var self = cmdarg();
+		   <![CDATA[
+var root = cmdarg();
+var rootindex = root.getIndex();
+var lightsPath = "/ai/models/multiplayer["~ rootindex ~"]/controls/lighting/";
+mpPath = "/ai/models/multiplayer["~ rootindex ~"]/";
+
+props.globals.initNode(mpPath~"sim/is-MP-Aircraft", 1, "BOOL");
+      
+srand();
+
+
+ <![CDATA[
+var root = cmdarg();
+var rootindex = root.getIndex();
+srand(); #set seed for random generator
+
+#flame Rembrandt light brightness alternation
+var flamePath = "/ai/models/multiplayer["~ rootindex ~"]/sim/model/V-1/";
+props.globals.initNode(flamePath ~ "flameBright", 0.0, "DOUBLE");
+var flameSeq = [0,0,0,0];
+var curSeq = 0;
+var flameBright = func {
+	flameSeq[curSeq] = 0.5 + rand()*0.5;
+	
+	setprop(flamePath ~ "flameBright", 
+		(flameSeq[0]+flameSeq[1]+flameSeq[2]+flameSeq[3]) / 4);
+	
+	if( curSeq < 3)
+		curSeq += 1;
+	else
+		curSeq = 0;
+		
+	settimer(flameBright, 0.02);
+}
+
+settimer(flameBright, 0.02);
+
+
+var mpPath = "/ai/models/multiplayer["~ rootindex ~"]/";
+
+var lightsPath = mpPath~"lightpack/"; #path to the property node, where all internal values are placed
+
+props.globals.initNode(mpPath~"sim/is-MP-Aircraft", 1, "BOOL");
+      
+srand();
+#wherever you want to add randomization of time, use something like:  + rand()*0.05-0.025 (included by default where appropriate)
+
+
+#list of switches for lights - if you don't intend to use some light, assign it nil value instead, like whateverSwitch = nil; and you don't need to care about anything else
+#IMPORTANT: don't put / on the start of the string, it's already included in the mpPath property
+var navSwitch = mpPath~"controls/lighting/nav-lights-switch";
+var beaconSwitch = mpPath~"controls/lighting/beacon-switch";
+var strobeSwitch = mpPath~"controls/lighting/strobe-switch";
+var landingSwitch = mpPath~"controls/lighting/landing-lights-switch";
+var taxiSwitch = nil;
+var probeSwitch = nil;
+var whiteSwitch = nil;
+
+
+#I need to set listener on some MP transferred properties; this doesn't seem to work well sometimes, so I mirror them to the original location on any change
+#This also simplifies work as I can use almost the same code for MP as is the local Nasal. Furthermore, I can use meaningful property names in the model XML files instead of referencing the MP properties. 
+var mpVar = {
+	new: func(propIn, propOut) {
+		var m = { parents: [mpVar] };
+		m.propIn = propIn;
+		m.propOut = propOut;
+		if(propIn==nil) return m;
+		m.value = getprop(propIn);
+		setprop(propOut, m.value);
+		return m;
+	},
+	check: func {
+		if(me.propIn==nil) return;
+		var newValue = getprop(me.propIn);
+		if(newValue != me.value) {
+			setprop(me.propOut, newValue);
+			me.value = newValue;
+			#print("value of "~me.propOut~" changed: "~newValue);
+		}
+	},
+};
+#init any property copy object needed in this array (anything you need to transfer over MP, but you are using the original paths in your xmls)
+#also used for properties you are using a listener on, or properties which you maybe want to manipulate during the <unload> 
+#if you're just using the pack, change the values according to the MP bindings in the -set.xml file
+#you don't need to delete the entries if the path is nil - it gets skipped automatically and the MP path is just ignored
+var mirrorValues = [
+	mpVar.new(mpPath~"sim/multiplay/generic/int[7]", mpPath~"sim/crashed"),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[0]", navSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[1]", beaconSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[1]", strobeSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[2]", landingSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[3]", taxiSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[3]", probeSwitch),
+	mpVar.new(mpPath~"sim/multiplay/generic/int[0]", whiteSwitch),
+];
+#loop at the default MP transfer frequency (10Hz)
+var mirrorTimer = maketimer(0.1, func {
+	foreach(var mir; mirrorValues) {
+		mir.check();
+	}
+});
+mirrorTimer.start();
+
+
+
+#### NAV LIGHTS ####
+
+#class for a periodic fade in/out animation - for flashing, use rather standard aircraft.light.new(), as in Beacon and Strobe section
+var lightCycle = {
+	#constructor
+	new: func(propSwitch, propOut) {
+		m = { parents: [lightCycle] };
+		props.globals.initNode(propOut, 0, "DOUBLE");
+		props.globals.initNode(propSwitch, 1, "BOOL");
+		m.fadeIn = 0.4 + rand()*0.05-0.025; #fade in time
+		m.fadeOut = 0.4 + rand()*0.05-0.025; #fade out time
+		m.stayOn = 1.5 + rand()*0.05-0.025; #stable on period
+		m.stayOff = 1 + rand()*0.05-0.025; #stable off period
+		m.turnOff = 0.12; #fade out time when turned off
+		m.phase = 0; #phase to be run on next timer call: 0 -> fade in, 1 -> stay on, 2 -> fade out, 3 -> stay off
+		m.cycleTimer = maketimer(0.1, func {
+			if(getprop(propSwitch)) {
+				if(m.phase == 0) {
+					interpolate(propOut, 1, m.fadeIn);
+					m.phase = 1;
+					m.cycleTimer.restart(m.fadeIn);
+				}
+				else if(m.phase == 1){
+					m.phase = 2;
+					m.cycleTimer.restart(m.stayOn);
+				}
+				else if(m.phase == 2){
+					interpolate(propOut, 0, m.fadeOut);
+					m.phase = 3;
+					m.cycleTimer.restart(m.fadeOut);
+				}
+				else if(m.phase == 3){
+					m.phase = 0;
+					m.cycleTimer.restart(m.stayOff);
+				}
+			}
+			else {
+				interpolate(propOut, 0, m.turnOff); #kills any currently ongoing interpolation
+				m.phase = 0;
+			}
+		});
+		m.cycleTimer.singleShot = 1;
+		if(propSwitch==nil) {
+			m.listen = nil;
+			return m;
+		}
+		m.listen = setlistener(propSwitch, func{m.cycleTimer.restart(0);}); #handle switch changes
+		m.cycleTimer.restart(0); #start the looping
+		return m;
+	},
+	#destructor
+	del: func {
+		if(me.listen!=nil) removelistener(me.listen);
+		me.cycleTimer.stop();
+	},
+};
+
+#By default, the switch property is initialized to 1 (only if no value is already assigned). Don't change the class implementation! To override this, set the property manually. You don't need to care if any other code already does it for you. 
+navLights = lightCycle.new(navSwitch, lightsPath~"nav-lights-intensity");
+
+### Uncomment and tune those to customize times ###
+#navLights.fadeIn = 0.0; #fade in time 
+#navLights.fadeOut = 0.0; #fade out time
+#navLights.stayOn = 100; #stable on period
+#navLights.stayOff = 0.0; #stable off period
+#navLights.turnOff = 0.12; #fade out time when turned off
+
+ setlistener(navSwitch, func{navS=getprop(navSwitch);if(navS){setprop(lightsPath~"nav-lights-intensity", 1)}else{setprop(lightsPath~"nav-lights-intensity", 0)}});setprop(lightsPath~"nav-lights-intensity", 1);
+
+
+
+### BEACON ###
+var beacon = nil;
+if(beaconSwitch!=nil) {
+	props.globals.initNode(beaconSwitch, 1, "BOOL");
+	beacon = aircraft.light.new(lightsPath~"beacon-state", 
+		[0.0, 1.0 + rand()*0.05-0.025], beaconSwitch);
+}
+	
+	
+### STROBE ###
+var strobe = nil;
+if(strobeSwitch!=nil) {
+	props.globals.initNode(strobeSwitch, 1, "BOOL");
+	strobe = aircraft.light.new(lightsPath~"strobe-state", 
+		[0.0, 0.87 + rand()*0.05-0.025], strobeSwitch);
+}
+
+
+### LIGHT FADING ###
+
+#class for controlling fade in/out behavior - propIn is a control property (handled as a boolean) and propOut is interpolated
+#all light brightness animations in xmls depend on propOut (Rembrandt brightness, material emission, flares transparency, ...)
+var lightFadeInOut = {
+	#constructor
+	new: func(propSwitch, propOut) {
+		m = { parents: [lightFadeInOut] };
+		m.fadeIn = 0.3; #some sane defaults
+		m.fadeOut = 0.4;
+		if(propSwitch==nil) {
+			m.listen = nil;
+			return m;
+		}
+		props.globals.initNode(propSwitch, 1, "BOOL");
+		m.isOn = getprop(propSwitch);
+		props.globals.initNode(propOut, m.isOn, "DOUBLE");
+		m.listen = setlistener(propSwitch, 
+			func {
+				if(m.isOn and !getprop(propSwitch)) {
+					interpolate(propOut, 0, m.fadeOut);
+					m.isOn = 0;
+				}
+				if(!m.isOn and getprop(propSwitch)) {
+					interpolate(propOut, 1, m.fadeIn);
+					m.isOn = 1;
+				}
+			}
+		);
+		return m;
+	},
+	#destructor
+	del: func {
+		if(me.listen!=nil) removelistener(me.listen);
+	},
+};
+
+fadeLanding = lightFadeInOut.new(landingSwitch, lightsPath~"landing-lights-intensity");
+fadeTaxi = lightFadeInOut.new(taxiSwitch, lightsPath~"taxi-light-intensity");
+fadeProbe = lightFadeInOut.new(probeSwitch, lightsPath~"probe-light-intensity");
+fadeWhite = lightFadeInOut.new(whiteSwitch, lightsPath~"white-light-intensity");
+#manipulate times if defaults don't fit your needs:
+#fadeLanding.fadeIn = 0.5;
+#fadeLanding.fadeOut = 0.8;
+
+
+### the rest of your model load embedded Nasal code ###
+
+    ]]>
+		 
+		</load>
+		<unload>
+		stopFire();
+      disintegrated = 0;
+      removelistener(listenCrash);
+      
+      #prevent multiple timers and listeners from running and fighting on next connect
+      #cleanly destroy MP property mirroring
+      mirrorTimer.stop();
+      mirrorTimer = nil;
+      mirrorValues = nil;
+      
+      #cleanly destroy nav lights
+      if(navSwitch!=nil) setprop(navSwitch, 0);
+      navLights.del();
+      if(navSwitch!=nil) navLights.cycleTimer = nil;
+      navLights = nil;
+      
+      #cleanly destroy beacon
+      if(beaconSwitch!=nil) setprop(beaconSwitch, 0);
+      beacon.del();
+      beacon = nil;
+      
+      #cleanly destroy strobe
+      if(strobeSwitch!=nil) setprop(strobeSwitch, 0);
+      strobe.del();
+      strobe = nil;
+      
+      #cleanly destroy light fade in/out animation objects
+      fadeLanding.del();
+      fadeTaxi.del();
+      fadeProbe.del();
+      fadeWhite.del();
+      
+      ### the rest of your model unload embedded Nasal code ###
+		livery_update.stop();
+		</unload>
+	</nasal>
+
+	<animation>
+    	<type>material</type>
+		<object-name>Fuselage</object-name>
+		<object-name>Canopy01</object-name>
+		<object-name>AileronL01</object-name>
+		<object-name>AileronR01</object-name>
+		<object-name>CanardL01</object-name>
+		<object-name>CanardR01</object-name>
+		<object-name>ElevatorL01</object-name>
+		<object-name>ElevatorR01</object-name>
+		<object-name>EngineL01</object-name>
+		<object-name>EngineR01</object-name>
+		<object-name>FlapL01</object-name>
+		<object-name>FlapR01</object-name>
+		<object-name>IntakeL01</object-name>
+		<object-name>IntakeR01</object-name>
+		<object-name>RudderL01</object-name>
+		<object-name>RudderR01</object-name>
+		<object-name>VoletL01</object-name>
+		<object-name>VoletR01</object-name>
+		<object-name>DoorL01</object-name>
+		<object-name>DoorL02</object-name>
+		<object-name>DoorR02</object-name>
+        <property-base>sim/model/livery</property-base>
+        <texture-prop>texture</texture-prop>
+        <texture>Liveries/Default.png</texture>
+	</animation>
+	
+<!-- Bump effect -->
+	
+	<effect>
+		<inherits-from>Aircraft/SU-47/Models/bumpspec</inherits-from>
+		<object-name>Fuselage</object-name>
+		<object-name>Canopy01</object-name>
+		<object-name>AileronL01</object-name>
+		<object-name>AileronR01</object-name>
+		<object-name>CanardL01</object-name>
+		<object-name>CanardR01</object-name>
+		<object-name>ElevatorL01</object-name>
+		<object-name>ElevatorR01</object-name>
+		<object-name>EngineL01</object-name>
+		<object-name>EngineR01</object-name>
+		<object-name>FlapL01</object-name>
+		<object-name>FlapR01</object-name>
+		<object-name>IntakeL01</object-name>
+		<object-name>IntakeR01</object-name>
+		<object-name>RudderL01</object-name>
+		<object-name>RudderR01</object-name>
+		<object-name>VoletL01</object-name>
+		<object-name>VoletR01</object-name>
+		<object-name>DoorL01</object-name>
+		<object-name>DoorL02</object-name>
+		<object-name>DoorR02</object-name>
+  </effect>
+  
+<!-- Shadows -->
+  
+  	<animation>
+		<type>noshadow</type>
+		<object-name>Glass01</object-name>
+		<object-name>Glass_Canopy01</object-name>
+	</animation>
+	
+	<!-- glass -->
+	<animation>
+    <type>shader</type>
+    <shader>chrome</shader>
+    <texture>Aircraft/Generic/Effects/glass_shader.png</texture>
+   <object-name>Glass01</object-name>
+		<object-name>Glass_Canopy01</object-name>
+  </animation>
+	
+	<effect>
+      <inherits-from>Effects/model-transparent</inherits-from>
+       <object-name>Glass01</object-name>
+		<object-name>Glass_Canopy01</object-name>
+		 <object-name>hudglass</object-name>
+   </effect>
+	
+	
+	<!-- Turns off non rembrant lighting and effects -->
+<animation>
+        <type>select</type>
+        
+	<object-name>sonicboom</object-name>
+		<condition>
+            <not>
+            <property>/sim/rendering/rembrandt/enabled</property>
+            </not>
+        </condition>
+    </animation>	
+	
+	<!-- Solid Surfaces for Rembrandt rendering -->
+   <animation>
+    
+  <object-name>Fuselage</object-name>
+		<object-name>Canopy01</object-name>
+		<object-name>AileronL01</object-name>
+		<object-name>AileronR01</object-name>
+		<object-name>CanardL01</object-name>
+		<object-name>CanardR01</object-name>
+		<object-name>ElevatorL01</object-name>
+		<object-name>ElevatorR01</object-name>
+		<object-name>EngineL01</object-name>
+		<object-name>EngineR01</object-name>
+		<object-name>FlapL01</object-name>
+		<object-name>FlapR01</object-name>
+		<object-name>IntakeL01</object-name>
+		<object-name>IntakeR01</object-name>
+		<object-name>RudderL01</object-name>
+		<object-name>RudderR01</object-name>
+		<object-name>VoletL01</object-name>
+		<object-name>VoletR01</object-name>
+		<object-name>DoorL01</object-name>
+		<object-name>DoorL02</object-name>
+		<object-name>DoorR02</object-name>
+		
+    </animation>	
+
+ 	<!-- Payload -->
+	
+	<model>
+		<path>Aircraft/Su-47/Models/Stores/Payload.xml</path>
+	</model>
+	
+	
+<!-- Animations -->
+
+
+ <!-- Impact explosion -->
+  <model>
+  <path>Aircraft/SU-47/Models/Effects/Explosion/Explode.xml</path>
+  <condition>
+    <property>sim/multiplay/generic/int[1]</property><!--><property>/nasal/explode</property><-->
+  </condition>
+  <offsets>
+    <x-m>12</x-m>
+    <y-m>0</y-m>
+    <z-m>0</z-m>
+    <heading-deg>0</heading-deg>
+    </offsets>
+  </model>
+  
+  <!-- Impact fire -->
+  <model>
+  <path>Aircraft/SU-47/Models/Effects/Explosion/ImpactFire.xml</path>
+  <condition>
+    <equals>
+      <property>sim/multiplay/generic/int[2]</property>
+      <value>1</value>
+    </equals>
+  </condition>
+  <offsets>
+    <x-m>12</x-m>
+    <y-m>0</y-m>
+    <z-m>0</z-m>
+    <heading-deg>0</heading-deg>
+    </offsets>
+  </model>
+  
+  <!-- Impact fire smoke -->
+  <model>
+  <path>Aircraft/SU-47/Models/Effects/Explosion/ImpactFireSmoke.xml</path>
+  <condition>
+    <equals>
+      <property>sim/multiplay/generic/int[2]</property>
+      <value>1</value>
+    </equals>
+  </condition>
+  <offsets>
+    <x-m>12</x-m>
+    <y-m>0</y-m>
+    <z-m>0</z-m>
+    <heading-deg>0</heading-deg>
+    </offsets>
+  </model>
+
+	
+<!-- Canopy -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>Glass_Canopy01</object-name>
+		<object-name>Canopy01</object-name>
+		<property>canopy/position-norm</property>
+		<factor>95</factor>
+		<axis>
+			<x1-m>5.5384</x1-m>
+			<y1-m>0.3866</y1-m>
+			<z1-m>0.7054</z1-m>
+			<x2-m>4.7909</x2-m>
+			<y2-m>0.4136</y2-m>
+			<z2-m>0.5913</z2-m>
+		</axis>
+	</animation>
+
+<!-- Ailerons -->
+
+	 <animation>
+		<type>rotate</type>
+		<object-name>AileronR01</object-name>
+		<property>surface-positions/right-aileron-pos-norm</property>
+		<factor>20</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m> 7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>AileronL01</object-name>
+		<property>surface-positions/left-aileron-pos-norm</property>
+		<factor>-20</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m>-7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Ailerons as flaps -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>AileronR01</object-name>
+		<property>surface-positions/right-flap-pos-norm</property>
+		<factor>20</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m> 7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>AileronL01</object-name>
+		<property>surface-positions/left-flap-pos-norm</property>
+		<factor>-20</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m>-7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Flaperons -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapR01</object-name>
+		<property>surface-positions/right-aileron-pos-norm</property>
+		<factor>-25</factor>
+		<axis>
+			<x1-m>15.8457</x1-m>
+			<y1-m> 2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapL01</object-name>
+		<property>surface-positions/left-aileron-pos-norm</property>
+		<factor>25</factor>
+		<axis>
+			<x1-m>15.8457</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Flaps -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapR01</object-name>
+		<property>surface-positions/flap-pos-norm</property>
+		<factor>25</factor>
+		<axis>   
+			<x1-m>15.8457</x1-m>
+			<y1-m> 2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapL01</object-name>
+		<property>surface-positions/flap-pos-norm</property>
+		<factor>-25</factor>
+		<axis>   
+			<x1-m>15.8457</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Slats -->
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>VoletR01</object-name>
+		<property>surface-positions/flap-pos-norm</property>
+		<factor>-15</factor>
+		<axis>   
+			<x1-m>13.6966</x1-m>
+			<y1-m> 3.2466</y1-m>
+			<z1-m> 0.5834</z1-m>
+			<x2-m>12.6343</x2-m>
+			<y2-m> 5.7072</y2-m>
+			<z2-m> 0.4651</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>VoletL01</object-name>
+		<property>surface-positions/flap-pos-norm</property>
+		<factor>15</factor>
+		<axis>   
+			<x1-m>13.6966</x1-m>
+			<y1-m>-3.2466</y1-m>
+			<z1-m> 0.5834</z1-m>
+			<x2-m>12.6343</x2-m>
+			<y2-m>-5.7072</y2-m>
+			<z2-m> 0.4651</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Canards -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>CanardR01</object-name>
+		<property>surface-positions/elevator-pos-norm</property>
+		<factor>20</factor>
+		<center>
+			<x-m>9.4476</x-m>
+			<y-m>1.7451</y-m>
+			<z-m>0.4689</z-m>
+		</center>
+		<axis>
+			<x>0</x>
+			<y>1</y>
+			<z>0</z>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>CanardL01</object-name>
+		<property>surface-positions/elevator-pos-norm</property>
+		<factor>20</factor>
+		<center>
+			<x-m>9.4476</x-m>
+			<y-m>1.7451</y-m>
+			<z-m>0.4689</z-m>
+		</center>
+		<axis>
+			<x>0</x>
+			<y>1</y>
+			<z>0</z>
+		</axis>
+	</animation>
+	
+<!-- Rudders -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>RudderR01</object-name>
+		<property>surface-positions/rudder-pos-norm</property>
+		<factor>30</factor>
+		<axis>   
+			<x1-m>19.3275</x1-m>
+			<y1-m>2.5696</y1-m>
+			<z1-m>3.0673</z1-m>
+			<x2-m>18.6330</x2-m>
+			<y2-m>2.4373</y2-m>
+			<z2-m>0.9271</z2-m>
+		</axis>
+	</animation>
+
+	<animation>
+		<type>rotate</type>
+		<object-name>RudderL01</object-name>
+		<property>surface-positions/rudder-pos-norm</property>
+		<factor>30</factor>
+		<axis>   
+			<x1-m>19.3275</x1-m>
+			<y1-m>-2.5696</y1-m>
+			<z1-m>3.0673</z1-m>
+			<x2-m>18.6330</x2-m>
+			<y2-m>-2.4373</y2-m>
+			<z2-m>0.9271</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Elevators -->
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>ElevatorL01</object-name>
+		<object-name>ElevatorR01</object-name>
+		<property>surface-positions/elevator-pos-norm</property>
+		<factor>20</factor>
+		<axis>   
+			<x1-m>19.7190</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5463</z1-m>
+			<x2-m>19.7190</x2-m>
+			<y2-m> 2.7317</y2-m>
+			<z2-m> 0.5463</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Speedbrake -->
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>RudderR01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>30</factor>
+		<axis>   
+			<x1-m>19.3275</x1-m>
+			<y1-m>2.5696</y1-m>
+			<z1-m>3.0673</z1-m>
+			<x2-m>18.6330</x2-m>
+			<y2-m>2.4373</y2-m>
+			<z2-m>0.9271</z2-m>
+		</axis>
+	</animation>
+
+	<animation>
+		<type>rotate</type>
+		<object-name>RudderL01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>-30</factor>
+		<axis>   
+			<x1-m>19.3275</x1-m>
+			<y1-m>-2.5696</y1-m>
+			<z1-m>3.0673</z1-m>
+			<x2-m>18.6330</x2-m>
+			<y2-m>-2.4373</y2-m>
+			<z2-m>0.9271</z2-m>
+		</axis>
+	</animation>
+
+	<animation>
+		<type>rotate</type>
+		<object-name>ElevatorR01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>-10</factor>
+		<axis>   
+			<x1-m>19.7190</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5463</z1-m>
+			<x2-m>19.7190</x2-m>
+			<y2-m> 2.7317</y2-m>
+			<z2-m> 0.5463</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>ElevatorL01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>-10</factor>
+		<axis>   
+			<x1-m>19.7190</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5463</z1-m>
+			<x2-m>19.7190</x2-m>
+			<y2-m> 2.7317</y2-m>
+			<z2-m> 0.5463</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>CanardR01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>20</factor>
+		<center>
+			<x-m>9.4476</x-m>
+			<y-m>1.7451</y-m>
+			<z-m>0.4689</z-m>
+		</center>
+		<axis>
+			<x>0</x>
+			<y>1</y>
+			<z>0</z>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>CanardL01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>20</factor>
+		<center>
+			<x-m>9.4476</x-m>
+			<y-m>1.7451</y-m>
+			<z-m>0.4689</z-m>
+		</center>
+		<axis>
+			<x>0</x>
+			<y>1</y>
+			<z>0</z>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>AileronR01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>-23</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m> 7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+
+	<animation>
+		<type>rotate</type>
+		<object-name>AileronL01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>23</factor>
+		<axis>
+			<x1-m>12.8116</x1-m>
+			<y1-m>-7.4124</y1-m>
+			<z1-m> 0.4139</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapR01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>-10</factor>
+		<axis>   
+			<x1-m>15.8457</x1-m>
+			<y1-m> 2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m> 5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+
+	<animation>
+		<type>rotate</type>
+		<object-name>FlapL01</object-name>
+		<property>surface-positions/speedbrake-pos-norm</property>
+		<factor>10</factor>
+		<axis>   
+			<x1-m>15.8457</x1-m>
+			<y1-m>-2.7317</y1-m>
+			<z1-m> 0.5606</z1-m>
+			<x2-m>13.9191</x2-m>
+			<y2-m>-5.7039</y2-m>
+			<z2-m> 0.4674</z2-m>
+		</axis>
+	</animation>
+		
+<!-- Landing gear doors -->
+
+<!-- Front doors -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>DoorL01</object-name>
+		<property>gear/gear[0]/position-norm</property>
+		<interpolation>
+			<entry>
+				<ind>0.0</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.4</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.7</ind>
+				<dep>-90</dep>
+			</entry>
+			<entry>
+				<ind>1.0</ind>
+				<dep>-90</dep>
+			</entry>
+		</interpolation>
+		<axis>   
+			<x1-m> 3.5386</x1-m>
+			<y1-m>-0.3000</y1-m>
+			<z1-m>-0.9711</z1-m>
+			<x2-m> 5.8058</x2-m>
+			<y2-m>-0.3643</y2-m>
+			<z2-m>-0.8611</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Main doors -->
+
+	<animation>
+		<type>rotate</type>
+		<object-name>DoorR02</object-name>
+		<property>gear/gear[2]/position-norm</property>
+		<interpolation>
+			<entry>
+				<ind>0.0</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.5</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.6</ind>
+				<dep>70</dep>
+			</entry>			
+			<entry>
+				<ind>1.0</ind>
+				<dep>70</dep>
+			</entry>
+		</interpolation>
+		<axis>   
+			<x1-m>10.9325</x1-m>
+			<y1-m> 1.7221</y1-m>
+			<z1-m> 0.1614</z1-m>
+			<x2-m>14.4337</x2-m>
+			<y2-m> 1.7221</y2-m>
+			<z2-m> 0.2532</z2-m>
+		</axis>
+	</animation>
+	
+	<animation>
+		<type>rotate</type>
+		<object-name>DoorL02</object-name>
+		<property>gear/gear[2]/position-norm</property>
+		<interpolation>
+			<entry>
+				<ind>0.0</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.5</ind>
+				<dep>0</dep>
+			</entry>
+			<entry>
+				<ind>0.6</ind>
+				<dep>-70</dep>
+			</entry>
+			<entry>
+				<ind>1.0</ind>
+				<dep>-70</dep>
+			</entry>
+		</interpolation>
+		<axis>   
+			<x1-m>10.9325</x1-m>
+			<y1-m>-1.7221</y1-m>
+			<z1-m> 0.1614</z1-m>
+			<x2-m>14.4337</x2-m>
+			<y2-m>-1.7221</y2-m>
+			<z2-m> 0.2532</z2-m>
+		</axis>
+	</animation>
+	
+<!-- Front Gear -->
+
+	<animation>
+		<type>select</type>
+        <type>rotate</type>
+        <object-name>front-strut</object-name>
+        <object-name>front-post</object-name>
+        <object-name>front-wheel</object-name>
+        <object-name>front-tyre</object-name>
+		<condition>
+		<greater-than>
+		<property>gear/gear[0]/position-norm</property>
+		<value>0</value>
+		</greater-than>
+		</condition>
+	</animation>
+
+    <animation>
+        <type>rotate</type>
+        <object-name>front-strut</object-name>
+        <object-name>front-wheel</object-name>
+        <object-name>front-tyre</object-name>
+        <property>gear/gear[0]/position-norm</property>
+		<interpolation>
+		<entry>
+        <ind>0.0</ind>
+        <dep>100</dep>
+		</entry>
+		<entry>
+        <ind>0.5</ind>
+        <dep>100</dep>
+		</entry>
+		<entry>
+        <ind>0.6</ind>
+        <dep>100</dep>
+		</entry>
+		<entry>
+        <ind>1.0</ind>
+        <dep>0</dep>
+		</entry>
+		</interpolation>
+        <center>
+            <x-m> 5.7234</x-m>
+            <y-m> 0.0000</y-m>
+            <z-m>-0.6577</z-m>
+        </center>
+        <axis>
+            <x> 0</x>
+            <y> 1</y>
+            <z> 0</z>
+        </axis>
+    </animation>
+    
+<!-- Right Gear -->
+    
+    <animation>
+		<type>select</type>
+        <type>rotate</type>
+        <object-name>right-strut</object-name>
+        <object-name>right-wheel</object-name>
+        <object-name>right-tyre</object-name>
+		<condition>
+		<greater-than>
+		<property>gear/gear[2]/position-norm</property>
+		<value>0</value>
+		</greater-than>
+		</condition>
+	</animation>
+    
+    <animation>
+        <type>rotate</type>
+        <object-name>right-strut</object-name>
+        <object-name>right-wheel</object-name>
+        <object-name>right-tyre</object-name>
+        <property>gear/gear[2]/position-norm</property>
+		<interpolation>
+		<entry>
+        <ind>0.0</ind>
+        <dep>75</dep>
+		</entry>
+		<entry>
+        <ind>0.5</ind>
+        <dep>75</dep>
+		</entry>
+		<entry>
+        <ind>0.6</ind>
+        <dep>0</dep>
+		</entry>
+		<entry>
+        <ind>1.0</ind>
+        <dep>0</dep>
+		</entry>
+		</interpolation>
+        <center>
+            <x-m>13.9792</x-m>
+            <y-m> 1.6219</y-m>
+            <z-m> 0.0153</z-m>
+        </center>
+        <axis>
+            <x> 0</x>
+            <y> 1</y>
+            <z> 0</z>
+        </axis>
+    </animation>
+    
+<!-- Left Gear -->
+
+    <animation>
+		<type>select</type>
+        <type>rotate</type>
+        <object-name>left-strut</object-name>
+        <object-name>left-wheel</object-name>
+        <object-name>left-tyre</object-name>
+		<condition>
+		<greater-than>
+		<property>gear/gear[1]/position-norm</property>
+		<value>0</value>
+		</greater-than>
+		</condition>
+	</animation>
+    
+    <animation>
+        <type>rotate</type>
+        <object-name>left-strut</object-name>
+        <object-name>left-wheel</object-name>
+        <object-name>left-tyre</object-name>
+        <property>gear/gear[1]/position-norm</property>
+		<interpolation>
+		<entry>
+        <ind>0.0</ind>
+        <dep>-75</dep>
+		</entry>
+		<entry>
+        <ind>0.5</ind>
+        <dep>-75</dep>
+		</entry>
+		<entry>
+        <ind>0.6</ind>
+        <dep>0</dep>
+		</entry>
+		<entry>
+        <ind>1.0</ind>
+        <dep>0</dep>
+		</entry>
+		</interpolation>
+        <center>
+            <x-m>13.9792</x-m>
+            <y-m>-1.6219</y-m>
+            <z-m> 0.0153</z-m>
+        </center>
+        <axis>
+            <x> 0</x>
+            <y>-1</y>
+            <z> 0</z>
+        </axis>
+    </animation>
+	
+	<!-- Lights -->
+	
+	 <model>
+<path>Aircraft/SU-47/Models/Lights/LightPack.xml</path>
+
+
+<offsets>
+      <x-m>0</x-m>
+      <y-m>0</y-m>
+      <z-m>0</z-m>
+      <pitch-deg>0</pitch-deg>
+      <heading-deg>0</heading-deg>    
+</offsets>
+</model>
+	
+	<!--
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Lights/light-cone.xml</path>
+	
+	<offsets>
+	<x-m>5.5</x-m>
+	<y-m>0.15</y-m>
+	<z-m>-1.3</z-m>
+	<pitch-deg>-6.15</pitch-deg>
+	<heading-deg>-10</heading-deg>    
+	</offsets>
+	</model>
+	
+	
+	
+	<model>
+	
+	<path>Aircraft/SU-47/Models/Lights/light-cone.xml</path>
+	<offsets>
+	<x-m>5.5</x-m>
+	<y-m>-0.15</y-m>
+	<z-m>-1.3</z-m>
+	<pitch-deg>-6.15</pitch-deg>
+	<heading-deg>10</heading-deg>
+	</offsets>
+	</model>
+	
+	
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Lights/RedLight.xml</path>
+	<offsets>
+	<x-m>  11.8 </x-m>
+	<y-m> -6.7 </y-m>
+	<z-m> 0.4 </z-m>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Lights/GreenLight.xml</path>
+	<offsets>
+	<x-m>  11.8 </x-m>
+	<y-m> 6.7 </y-m>
+	<z-m> 0.4 </z-m>
+	</offsets>
+	</model>
+	
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Lights/beacon.xml</path>
+	<offsets>
+	<x-m>  11.7 </x-m>
+	<y-m> -6.89 </y-m>
+	<z-m> 0.4 </z-m>
+	</offsets>
+	</model>
+
+	<model>
+	<path>Aircraft/SU-47/Models/Lights/StrobeWhite.xml</path>
+	<offsets>
+	<x-m>19.4</x-m>
+	<y-m>-2.6</y-m>
+	<z-m>3.82</z-m>
+	</offsets>
+	</model>
+	-->
+	<!-- Effects -->
+	
+	<!-- Reheat -->
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Aferburner/EJ200-L.xml</path>
+	<offsets>
+	<x-m>  21.5</x-m>
+	<y-m>  -0.7</y-m>
+	<z-m> 0.33</z-m>
+	
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Aferburner/EJ200-R.xml</path>
+	<offsets>
+	<x-m>  21.5</x-m>
+	<y-m>  0.75</y-m>
+	<z-m> 0.33</z-m>
+	
+	</offsets>
+	</model>
+	
+	<!-- Low level wash -->
+	
+	<model>
+	<name>aircraft_wash_l</name>
+	<path>Aircraft/SU-47/Models/Effects/wash/aircraft_wash.xml</path>
+	<condition>
+	<equals>
+	<property>controls/state/low_level</property>
+	<value>1</value>
+	</equals>
+	</condition>
+	<offsets>
+	<x-m>25.000</x-m>
+	<y-m>4.50</y-m>
+	<z-m>0.0</z-m>
+	<pitch-deg>0</pitch-deg>
+	</offsets>
+	</model>
+	
+	<model>
+	<name>aircraft_wash_r</name>
+	<path>Aircraft/SU-47/Models/Effects/wash/aircraft_wash.xml</path>
+	<condition>
+	<equals>
+	<property>controls/state/low_level</property>
+	<value>1</value>
+	</equals>
+	</condition>
+	<offsets>
+	<x-m>25.000</x-m>
+	<y-m>-4.50</y-m>
+	<z-m>0.0</z-m>
+	<pitch-deg>0</pitch-deg>
+	</offsets>
+	</model>
+	
+	<animation>
+	<type>translate</type>
+	<object-name>aircraft_wash_l</object-name>
+	<object-name>aircraft_wash_r</object-name>
+	<property>position/altitude-agl-ft</property>
+	<condition>
+	<equals>
+	<property>controls/state/low_level</property>
+	<value>1</value>
+	</equals>
+	</condition>
+	<interpolation>
+	<entry>
+	<ind>0.0</ind>
+	<dep>0.0</dep>
+	</entry>
+	<entry>
+	<ind>300.0</ind>
+	<dep>-90</dep>
+	</entry>
+	</interpolation>
+	<axis>
+	<x>-1</x>
+	<y>0</y>
+	<z>1.0</z>
+	</axis>
+	</animation>
+	
+	<model>
+	<name>sonicboom</name>
+	<path>Aircraft/SU-47/Models/Effects/boom/fx.xml</path>
+	<offsets>
+	<x-m>14</x-m>
+	<y-m>0</y-m>
+	<z-m>0</z-m>
+	<pitch-deg>0</pitch-deg>
+	</offsets>
+	</model> 
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Vapour/Vapour.xml</path>
+	<offsets>
+	<x-m>9.5</x-m>
+	<y-m>-1.5</y-m>
+	<z-m>0.9</z-m>
+	<roll-deg>0</roll-deg>
+	<pitch-deg>0</pitch-deg>
+	<heading-deg>-25</heading-deg>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Vapour/Vapour.xml</path>
+	<offsets>
+	<x-m>9.5</x-m>
+	<y-m>1.5</y-m>
+	<z-m>0.9</z-m>
+	<roll-deg>0</roll-deg>
+	<pitch-deg>0</pitch-deg>
+	<heading-deg>25</heading-deg>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Vapour/Vapour2.xml</path>
+	<offsets>
+	<x-m>13.5</x-m>
+	<y-m>-4</y-m>
+	<z-m>0.9</z-m>
+	<roll-deg>0</roll-deg>
+	<pitch-deg>0</pitch-deg>
+	<heading-deg>45</heading-deg>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/Vapour/Vapour2.xml</path>
+	<offsets>
+	<x-m>13.5</x-m>
+	<y-m>4</y-m>
+	<z-m>0.9</z-m>
+	<roll-deg>0</roll-deg>
+	<pitch-deg>0</pitch-deg>
+	<heading-deg>-45</heading-deg>
+	</offsets>
+	</model>
+	
+	<!-- smoke n trails -->
+	
+	<!-- Gauche -->
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/smoke/smokeL.xml</path>
+	<offsets>
+	<x-m>  22</x-m>
+	<y-m>  -0.6</y-m>
+	<z-m> 0.33</z-m>
+	</offsets>
+	</model>
+	
+	<!-- Droite -->
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/smoke/smokeR.xml</path>
+	<offsets>
+	<x-m>  22</x-m>
+	<y-m>  0.6</y-m>
+	<z-m> 0.33</z-m>
+	</offsets>
+	</model>
+	
+	<!-- Contrail-left -->
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/trail/trailL.xml</path>
+	<offsets>
+	<x-m>  22</x-m>
+	<y-m>  -0.6</y-m>
+	<z-m> 0.33</z-m>
+	</offsets>
+	</model>
+	
+	<!-- Contrail-right -->
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/trail/trailR.xml</path>
+	<offsets>
+	<x-m>  22</x-m>
+	<y-m>  0.6</y-m>
+	<z-m> 0.33</z-m>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/tiptrail/tiptrail.xml</path>
+	<offsets>
+	<x-m>  11.6 </x-m>
+	<y-m> -7 </y-m>
+	<z-m> 0.5 </z-m>
+	<pitch-deg>0</pitch-deg>
+	</offsets>
+	</model>
+	
+	<model>
+	<path>Aircraft/SU-47/Models/Effects/tiptrail/tiptrail.xml</path>
+	<offsets>
+	<x-m>  11.6 </x-m>
+	<y-m> 7 </y-m>
+	<z-m> 0.5 </z-m>
+	<pitch-deg>0</pitch-deg>
+	</offsets>
+	</model>
+	
+</PropertyList>

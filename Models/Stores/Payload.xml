@@ -1,0 +1,779 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+<!-- Pylon 1 L -->
+-
+	<model>
+		<name>1Lr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>12.9</x-m>
+			<y-m>-6.3</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>1Lr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[0]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[0]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+
+	
+	<model>
+		<name>1Lr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>12.8</x-m>
+			<y-m>-6.3</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>1Lr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[0]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[0]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	
+	<!-- pylon 2 L -->
+	
+	<model>
+		<name>2Lr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>13.8</x-m>
+			<y-m>-5</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Lr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[1]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[1]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>2Lr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>13.6</x-m>
+			<y-m>-5</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Lr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[1]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[1]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+
+	
+	<model>
+		<name>2Lkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+			<x-m>13.1</x-m>
+			<y-m>-5</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Lkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[1]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[1]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<!-- pylon 3 L -->
+	
+	
+	<model>
+		<name>3Lr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>14.2</x-m>
+			<y-m>-3.73</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Lr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[2]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[2]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+
+	
+	<model>
+		<name>3Lr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>14.0</x-m>
+			<y-m>-3.73</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Lr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[2]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[2]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>3Lkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+			<x-m>13.5</x-m>
+			<y-m>-3.73</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Lkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[2]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[2]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>3Lfab500</name>
+		<path>Aircraft/Su-47/Models/Stores/fab500/FAB-500.xml</path>
+		<offsets>
+			<x-m>14</x-m>
+			<y-m>-3.73</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Lfab500</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[2]/selected</property>
+					<value>FAB-500</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[2]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<!-- pylon 4 L -->
+	
+	<model>
+		<name>4Lr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>10.5</x-m>
+			<y-m>-0.84</y-m>
+			<z-m>-1.23</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Lr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[3]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[3]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+
+	
+	<model>
+		<name>4Lkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+		<x-m>10.5</x-m>
+			<y-m>-0.84</y-m>
+			<z-m>-1.28</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Lkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[3]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[3]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+		
+		
+		
+		
+	<model>
+		<name>4Lfab500</name>
+		<path>Aircraft/Su-47/Models/Stores/fab500/FAB-500.xml</path>
+		<offsets>
+			<x-m>10.5</x-m>
+			<y-m>-0.84</y-m>
+			<z-m>-1.28</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Lfab500</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[3]/selected</property>
+					<value>FAB-500</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[3]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>	
+		
+	
+	<!-- pylon centre -->
+	
+	<model>
+		<name>Ckh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+		<x-m>13</x-m>
+			<y-m>0</y-m>
+			<z-m>-1.47</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>Ckh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[4]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[4]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+
+	
+	<model>
+		<name>Cfab500</name>
+		<path>Aircraft/Su-47/Models/Stores/fab500/FAB-500.xml</path>
+		<offsets>
+			<x-m>13</x-m>
+			<y-m>0</y-m>
+			<z-m>-1.47</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>Cfab500</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[4]/selected</property>
+					<value>FAB-500</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[4]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>	
+	
+	<!-- pylon 4 R -->
+	
+	<model>
+		<name>4Rr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>10.5</x-m>
+			<y-m>0.87</y-m>
+			<z-m>-1.23</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Rr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[5]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[5]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<model>
+		<name>4Rkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+		<x-m>10.5</x-m>
+			<y-m>0.87</y-m>
+			<z-m>-1.28</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Rkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[5]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[5]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<model>
+		<name>4Rfab500</name>
+		<path>Aircraft/Su-47/Models/Stores/fab500/FAB-500.xml</path>
+		<offsets>
+			<x-m>10.5</x-m>
+			<y-m>0.87</y-m>
+			<z-m>-1.28</z-m>
+			<roll-deg>0</roll-deg>
+			<pitch-deg>-2</pitch-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>4Rfab500</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[5]/selected</property>
+					<value>FAB-500</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[5]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>	
+	
+	<!-- pylon 3 R -->
+	
+	<model>
+		<name>3Rr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>14.2</x-m>
+			<y-m>3.76</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Rr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[6]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[6]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>3Rr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>14.0</x-m>
+			<y-m>3.76</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Rr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[6]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[6]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<model>
+		<name>3Rkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+			<x-m>13.5</x-m>
+			<y-m>3.76</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Rkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[6]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[6]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>3Rfab500</name>
+		<path>Aircraft/Su-47/Models/Stores/fab500/FAB-500.xml</path>
+		<offsets>
+			<x-m>14</x-m>
+			<y-m>3.76</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>3Rfab500</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[6]/selected</property>
+					<value>FAB-500</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[6]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<!-- Pylon 2 R -->
+	
+	<model>
+		<name>2Rr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>13.8</x-m>
+			<y-m>5.03</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Rr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[7]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[7]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+		<model>
+		<name>2Rr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>13.6</x-m>
+			<y-m>5.03</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Rr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[7]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[7]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<model>
+		<name>2Rkh25</name>
+		<path>Aircraft/Su-47/Models/Stores/kh25/kh-25.xml</path>
+		<offsets>
+			<x-m>13.1</x-m>
+			<y-m>5.03</y-m>
+			<z-m>-0.42</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>2Rkh25</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[7]/selected</property>
+					<value>Kh-25</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[7]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	<!-- pylon 1 R -->
+	
+	<model>
+		<name>1Rr74</name>
+		<path>Aircraft/Su-47/Models/Stores/R74/R-74.xml</path>
+		<offsets>
+			<x-m>12.9</x-m>
+			<y-m>6.33</y-m>
+			<z-m>-0.33</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>1Rr74</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[8]/selected</property>
+					<value>R-74</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[8]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+	
+	<model>
+		<name>1Rr77</name>
+		<path>Aircraft/Su-47/Models/Stores/R77/R77.xml</path>
+		<offsets>
+			<x-m>12.8</x-m>
+			<y-m>6.33</y-m>
+			<z-m>-0.37</z-m>
+			<roll-deg>-3</roll-deg>
+		</offsets>
+	</model>
+	
+	<animation>
+		<type>select</type>
+		<object-name>1Rr77</object-name>
+		<condition>
+			<and>
+				<equals>
+					<property>sim/weight[8]/selected</property>
+					<value>R-77</value>
+				</equals>
+				<equals>
+					<property>controls/armament/station[8]/release</property>
+					<value>false</value>
+				</equals>
+			</and>
+		</condition>
+	</animation>
+	
+</PropertyList>

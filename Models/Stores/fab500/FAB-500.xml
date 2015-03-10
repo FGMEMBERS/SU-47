@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+<!-- Russion GP bomb - 1100 lb 
+
+FAB 500-M62. High Explosive Bomb FAB 500 M62 is intended for destruction of military-industrial sites, railway junctions, 
+field facilities, personnel in open terrain as well as in light armoured vehicles and trucks on the march or during 
+attack within the main concentration perimeter. 
+
+
+TECHNICAL CHARACTERISTICS: 
+
+Caliber, kg 500 
+Length, mm 2 416 
+Body Diameter, mm ø400 
+Tail fin span, mm 511 
+Characteristic time, s 20,38/12,20,44/22 
+Explosive weight, kg 207 
+Bomb weight, kg 497 
+Fuze AVU-ETM;AVU-ET 
+
+-->
+
+	<path>FAB-500.ac</path>
+	
+	 <animation>
+    <object-name>FAB-500</object-name>
+  </animation>
+
+
+</PropertyList>

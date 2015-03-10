@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<PropertyList>
+<!--
+Type:- Medium-Range Active-Radar Homing Air-to-Air Missile 
+Manufacturer:- Vympel 
+Specifications:-
+Weight:- 175 kg (R-77), 226 kg (R-77M1) 
+Length:- 3.6 m (R-77) 
+Diameter:- 200 mm 
+Warhead:- 22 kg [1] HE, fragmenting 
+Detonation  mechanism:- laser proximity fuze 
+Engine:- Solid fuel rocket motor (R-77), air-breathing ramjet (R-77M1)
+Wingspan:- 350 mm 
+Operational range:- Strongly varying according to source:
+ R-77:40 km (21.6 nm)[1] - 50 km (27 nm)[2] - 80 km (43.2 nm)[3]
+ R-77M1:60 km (32.4 nm)[1] - 80 km (43.2 nm)[4] - 160 km (86 nm)[3] 
+Flight altitude:-5 m-25 km (16.5-82,000 ft) 
+Speed:- Mach 4.5 (R-77) 
+Guidance system:- Inertial with mid-course update and terminal active radar homing 
+Launch platform:- Mikoyan MiG-21-93/Lance/Bison, Mikoyan MiG-29, Mikoyan MiG-31, Mikoyan MiG-35, Sukhoi Su-27SM, Sukhoi Su-30, Sukhoi Su-33, Sukhoi Su-34, Sukhoi Su-35, Sukhoi Su-37, Sukhoi Su-47, Yakovlev Yak-141, J-10B
+Future Platforms:- Sukhoi PAK FA 
+-->
+
+  <path>R-77.ac</path>
+
+  <animation>
+    <!-- Objets opaques -->
+    <object-name>r-77</object-name>
+
+    <!-- Objets transparents -->
+  </animation>
+  <effect>
+    <inherits-from>Aircraft/Generic/Effects/Fuselagereflect</inherits-from>
+    <object-name>Mica</object-name>
+    <condition>
+      <not><property>sim/rendering/rembrandt/enabled</property></not>
+    </condition>
+  </effect>
+
+</PropertyList>
+
